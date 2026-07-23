@@ -1,0 +1,39 @@
+# ==========================
+# Root Workspace
+# ==========================
+
+.idea/
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# Temporary
+tmp/
+temp/
+
+# Flutter
+**/.dart_tool/
+**/build/
+
+# Android
+**/.gradle/
+**/local.properties
+
+# IntelliJ
+**/*.iml
+
+# Generated
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
