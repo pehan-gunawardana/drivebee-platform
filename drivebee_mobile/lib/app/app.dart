@@ -1,3 +1,4 @@
+import 'package:drivebee_mobile/core/router/app_router.dart';
 import 'package:drivebee_mobile/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -6,15 +7,11 @@ class DriveBeeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'DriveBee',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const Scaffold(
-        body: Center(
-          child: Text('🐝 DriveBee'),
-        ),
-      ),
+      routerConfig: AppRouter.router,
     );
   }
 }
