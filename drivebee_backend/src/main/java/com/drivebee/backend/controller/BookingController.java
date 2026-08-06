@@ -1,7 +1,7 @@
 package com.drivebee.backend.controller;
 
 import com.drivebee.backend.dto.BookingDto;
-import com.drivebee.backend.model.Booking;
+import com.drivebee.backend.dto.BookingResponseDto;
 import com.drivebee.backend.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +23,8 @@ public class BookingController {
      * Accessible via POST /api/v1/bookings
      */
     @PostMapping
-    public ResponseEntity<Booking> createBooking(@Valid @RequestBody BookingDto bookingDto) {
-        Booking savedBooking = bookingService.createBooking(bookingDto);
+    public ResponseEntity<BookingResponseDto> createBooking(@Valid @RequestBody BookingDto bookingDto) {
+        BookingResponseDto savedBooking = bookingService.createBooking(bookingDto);
         return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }
 
@@ -33,8 +33,8 @@ public class BookingController {
      * Accessible via GET /api/v1/bookings
      */
     @GetMapping
-    public ResponseEntity<List<Booking>> getMyBookings() {
-        List<Booking> bookings = bookingService.getBookingsForCurrentUser();
+    public ResponseEntity<List<BookingResponseDto>> getMyBookings() {
+        List<BookingResponseDto> bookings = bookingService.getBookingsForCurrentUser();
         return ResponseEntity.ok(bookings);
     }
 }

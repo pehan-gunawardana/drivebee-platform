@@ -1,6 +1,7 @@
 package com.drivebee.backend.service;
 
 import com.drivebee.backend.dto.BookingDto;
+import com.drivebee.backend.dto.BookingResponseDto;
 import com.drivebee.backend.model.Booking;
 import com.drivebee.backend.model.BookingStatus;
 import com.drivebee.backend.model.User;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +32,7 @@ public class BookingService {
      * Resolves the authenticated user, finds the vehicle, calculates the total price,
      * and sets status to PENDING.
      */
-    public Booking createBooking(BookingDto dto) {
+    public BookingResponseDto createBooking(BookingDto dto) {
         // Resolve authenticated user's email
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User customer = userRepository.findByEmail(email)
@@ -63,14 +65,46 @@ public class BookingService {
                 .status(BookingStatus.PENDING)
                 .build();
 
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+        return mapToResponseDto(savedBooking);
     }
 
     /**
      * Fetches all bookings for the currently authenticated user.
      */
-    public List<Booking> getBookingsForCurrentUser() {
+    public List<BookingResponseDto> getBookingsForCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return bookingRepository.findByCustomerEmail(email);
+        return bookingRepository.findByCustomerEmail(email)
+                .stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    private BookingResponseDto mapToResponseDto(Booking booking) {
+        if (booking == null) return null;
+
+        BookingResponseDto.VehicleSummaryDto vehicleSummary = null;
+        if (booking.getVehicle() != null) {
+            vehicleSummary = BookingResponseDto.VehicleSummaryDto.builder()
+                    .id(booking.getVehicle().getId())
+                    .brand(booking.getVehicle().getBrand())
+                    .model(booking.getVehicle().getModel())
+                    .licensePlate(booking.getVehicle().getLicensePlate())
+                    .year(booking.getVehicle().getYear())
+                    .pricePerDay(booking.getVehicle().getPricePerDay())
+                    .status(booking.getVehicle().getStatus().name())
+                    .build();
+        }
+
+        return BookingResponseDto.builder()
+                .id(booking.getId())
+                .startDate(booking.getStartDate())
+                .endDate(booking.getEndDate())
+                .totalPrice(booking.getTotalPrice())
+                .status(booking.getStatus())
+                .vehicle(vehicleSummary)
+                .createdAt(booking.getCreatedAt())
+                .updatedAt(booking.getUpdatedAt())
+                .build();
     }
 }
