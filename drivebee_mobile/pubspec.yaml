@@ -21,9 +21,11 @@ dependencies:
 
   # Networking
   dio: ^5.9.0
+  http: ^1.2.0
 
   # Secure Storage
   flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.2.0
 
   # UI
   google_fonts: ^6.3.1
