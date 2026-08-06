@@ -38,4 +38,45 @@ class VehicleService {
       throw Exception('Failed to load vehicles: $e');
     }
   }
+
+  /// Creates a new vehicle record on the backend server.
+  /// Attaches the user's saved JWT Bearer token to the Authorization headers.
+  /// Returns [true] if successfully created (status 200 or 201).
+  Future<bool> createVehicle(Map<String, dynamic> vehicleData) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/vehicles');
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+
+      final Map<String, String> headers = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await _client.post(
+        url,
+        headers: headers,
+        body: jsonEncode(vehicleData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        String errorMessage = 'Failed to list vehicle';
+        try {
+          final Map<String, dynamic> errorData = jsonDecode(response.body);
+          if (errorData.containsKey('message')) {
+            errorMessage = errorData['message'];
+          }
+        } catch (_) {}
+        throw Exception('$errorMessage (Status: ${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Failed to create vehicle: $e');
+    }
+  }
 }

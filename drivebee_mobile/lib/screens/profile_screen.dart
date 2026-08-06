@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../core/services/auth_service.dart';
 import 'login_screen.dart';
+import 'owner_dashboard_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -176,52 +177,62 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 28),
 
             // 3. Dark Owner Dashboard Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.charcoal,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OwnerDashboardScreen(),
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Owner Dashboard',
-                          style: TextStyle(
-                            color: AppTheme.primary,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          'Manage your listed vehicles, analyze earnings, and track host bookings.',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppTheme.charcoal,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Icon(
-                    Icons.arrow_forward_ios,
-                    color: AppTheme.primary,
-                    size: 16,
-                  ),
-                ],
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            'Owner Dashboard',
+                            style: TextStyle(
+                              color: AppTheme.primary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                            'Manage your listed vehicles, analyze earnings, and track host bookings.',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      color: AppTheme.primary,
+                      size: 16,
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 28),
