@@ -52,4 +52,10 @@ class AuthService {
       throw Exception('Failed to connect to backend: $e');
     }
   }
+
+  /// Clears the saved JWT token from SharedPreferences.
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+  }
 }

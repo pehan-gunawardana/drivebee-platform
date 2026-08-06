@@ -4,6 +4,7 @@ import '../core/services/vehicle_service.dart';
 import '../shared/models/vehicle_model.dart';
 import 'vehicle_details_screen.dart';
 import 'my_bookings_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -113,14 +114,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(width: 4),
                       // Profile Avatar
-                      const CircleAvatar(
-                        radius: 20,
-                        backgroundColor: AppTheme.primary,
-                        child: Text(
-                          'P',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
+                            ),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 20,
+                          backgroundColor: AppTheme.primary,
+                          child: Text(
+                            'P',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
