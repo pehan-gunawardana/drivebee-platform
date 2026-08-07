@@ -6,6 +6,7 @@ class Booking {
   final String startDate;
   final String endDate;
   final String status;
+  final double? totalPrice;
 
   Booking({
     required this.id,
@@ -15,6 +16,7 @@ class Booking {
     required this.startDate,
     required this.endDate,
     required this.status,
+    this.totalPrice,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -39,6 +41,7 @@ class Booking {
       startDate: json['startDate'] as String,
       endDate: json['endDate'] as String,
       status: json['status'] as String,
+      totalPrice: json['totalPrice'] != null ? (json['totalPrice'] as num).toDouble() : null,
     );
   }
 
@@ -49,6 +52,7 @@ class Booking {
       'startDate': startDate,
       'endDate': endDate,
       'status': status,
+      'totalPrice': totalPrice,
     };
   }
 }

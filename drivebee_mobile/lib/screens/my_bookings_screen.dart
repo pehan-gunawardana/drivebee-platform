@@ -16,12 +16,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   @override
   void initState() {
     super.initState();
-    _bookingsFuture = BookingService().fetchMyBookings();
+    _bookingsFuture = BookingService().fetchMyTrips();
   }
 
   void _refreshBookings() {
     setState(() {
-      _bookingsFuture = BookingService().fetchMyBookings();
+      _bookingsFuture = BookingService().fetchMyTrips();
     });
   }
 

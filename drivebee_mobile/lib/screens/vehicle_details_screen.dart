@@ -117,11 +117,11 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
               );
 
               try {
-                final success = await BookingService().createBooking(
-                  widget.vehicle.id,
-                  _formatDate(_startDate),
-                  _formatDate(_endDate),
-                );
+                final success = await BookingService().createBooking({
+                  'vehicleId': widget.vehicle.id,
+                  'startDate': _formatDate(_startDate),
+                  'endDate': _formatDate(_endDate),
+                });
 
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(

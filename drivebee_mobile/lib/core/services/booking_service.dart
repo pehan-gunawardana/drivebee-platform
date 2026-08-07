@@ -12,7 +12,7 @@ class BookingService {
   /// Submits a booking request to the backend.
   /// Attaches the user's saved JWT Bearer token to the Authorization headers.
   /// Returns [true] if successfully created (status 200 or 201).
-  Future<bool> createBooking(int vehicleId, String startDate, String endDate) async {
+  Future<bool> createBooking(Map<String, dynamic> data) async {
     final url = Uri.parse('${ApiConstants.baseUrl}/bookings');
 
     try {
@@ -30,11 +30,7 @@ class BookingService {
       final response = await _client.post(
         url,
         headers: headers,
-        body: jsonEncode({
-          'vehicleId': vehicleId,
-          'startDate': startDate,
-          'endDate': endDate,
-        }),
+        body: jsonEncode(data),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -55,10 +51,10 @@ class BookingService {
     }
   }
 
-  /// Fetches all bookings of the currently logged-in user.
+  /// Fetches all bookings of the currently logged-in user under my-trips.
   /// Attaches the user's saved JWT Bearer token to the Authorization headers.
-  Future<List<Booking>> fetchMyBookings() async {
-    final url = Uri.parse('${ApiConstants.baseUrl}/bookings');
+  Future<List<Booking>> fetchMyTrips() async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/bookings/my-trips');
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -84,4 +80,7 @@ class BookingService {
       throw Exception('Failed to connect to backend: $e');
     }
   }
+
+  /// Deprecated helper calling fetchMyTrips for compatibility.
+  Future<List<Booking>> fetchMyBookings() => fetchMyTrips();
 }
