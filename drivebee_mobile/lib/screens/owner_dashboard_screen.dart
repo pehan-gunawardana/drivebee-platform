@@ -133,10 +133,25 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: Colors.grey.shade200),
                       ),
-                      child: const Icon(
-                        Icons.directions_car_filled,
-                        size: 36,
-                        color: AppTheme.primary,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: vehicle.fullImageUrl != null
+                            ? Image.network(
+                                vehicle.fullImageUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.directions_car_filled,
+                                    size: 36,
+                                    color: AppTheme.primary,
+                                  );
+                                },
+                              )
+                            : const Icon(
+                                Icons.directions_car_filled,
+                                size: 36,
+                                color: AppTheme.primary,
+                              ),
                       ),
                     ),
                     const SizedBox(width: 16),

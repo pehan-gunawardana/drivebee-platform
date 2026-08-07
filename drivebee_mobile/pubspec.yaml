@@ -32,6 +32,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.2.0
   cached_network_image: ^3.4.1
+  image_picker: ^1.1.2
 
   # Logging
   logger: ^2.6.1

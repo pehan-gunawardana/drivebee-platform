@@ -1,4 +1,6 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../core/theme/app_theme.dart';
 import '../core/services/vehicle_service.dart';
 
@@ -18,6 +20,10 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _priceController = TextEditingController();
   bool _isLoading = false;
 
+  Uint8List? _selectedImageBytes;
+  String? _selectedImageName;
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void dispose() {
     _brandController.dispose();
@@ -26,6 +32,40 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     _plateController.dispose();
     _priceController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1080,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+        setState(() {
+          _selectedImageBytes = bytes;
+          _selectedImageName = pickedFile.name;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error picking image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _clearImage() {
+    setState(() {
+      _selectedImageBytes = null;
+      _selectedImageName = null;
+    });
   }
 
   Future<void> _handleSubmit() async {
@@ -45,26 +85,30 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     };
 
     try {
-      final success = await VehicleService().createVehicle(vehicleData);
+      // 1. Create the vehicle record
+      final vehicle = await VehicleService().createVehicle(vehicleData);
+
+      // 2. If an image was selected, upload it
+      if (_selectedImageBytes != null) {
+        final imageUrl = await VehicleService().uploadVehicleImage(
+          vehicle.id,
+          _selectedImageBytes!,
+          _selectedImageName ?? 'vehicle_image.jpg',
+        );
+        if (imageUrl == null) {
+          throw Exception('Vehicle created, but image upload failed.');
+        }
+      }
 
       if (!mounted) return;
 
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Vehicle listed successfully!'),
-            backgroundColor: AppTheme.success,
-          ),
-        );
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to list vehicle.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vehicle listed successfully!'),
+          backgroundColor: AppTheme.success,
+        ),
+      );
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -144,7 +188,120 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
+
+              // Image Picker UI
+              GestureDetector(
+                onTap: _pickImage,
+                child: _selectedImageBytes == null
+                    ? Container(
+                        height: 160,
+                        decoration: BoxDecoration(
+                          color: AppTheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppTheme.primary.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_a_photo_outlined,
+                              size: 40,
+                              color: AppTheme.primary,
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              'Add Vehicle Image',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Tap to select a photo from your gallery',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.memory(
+                              _selectedImageBytes!,
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: _clearImage,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: _pickImage,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.edit,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Change',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+              const SizedBox(height: 24),
 
               _buildField(
                 controller: _brandController,

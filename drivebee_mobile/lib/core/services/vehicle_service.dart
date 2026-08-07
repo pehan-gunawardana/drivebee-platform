@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/api_constants.dart';
@@ -41,8 +42,8 @@ class VehicleService {
 
   /// Creates a new vehicle record on the backend server.
   /// Attaches the user's saved JWT Bearer token to the Authorization headers.
-  /// Returns [true] if successfully created (status 200 or 201).
-  Future<bool> createVehicle(Map<String, dynamic> vehicleData) async {
+  /// Returns the created [Vehicle] object.
+  Future<Vehicle> createVehicle(Map<String, dynamic> vehicleData) async {
     final url = Uri.parse('${ApiConstants.baseUrl}/vehicles');
 
     try {
@@ -64,7 +65,8 @@ class VehicleService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return true;
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        return Vehicle.fromJson(responseData);
       } else {
         String errorMessage = 'Failed to list vehicle';
         try {
@@ -77,6 +79,43 @@ class VehicleService {
       }
     } catch (e) {
       throw Exception('Failed to create vehicle: $e');
+    }
+  }
+
+  /// Uploads a vehicle image to the backend server using bytes.
+  /// Attaches the user's saved JWT Bearer token to the Authorization headers.
+  /// Returns the uploaded image URL string on success, or null on failure.
+  Future<String?> uploadVehicleImage(int vehicleId, Uint8List imageBytes, String filename) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/vehicles/$vehicleId/image');
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+
+      final request = http.MultipartRequest('POST', url);
+
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'image',
+          imageBytes,
+          filename: filename,
+        ),
+      );
+
+      final streamedResponse = await _client.send(request);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.body;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
     }
   }
 }

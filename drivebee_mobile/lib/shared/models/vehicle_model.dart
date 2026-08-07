@@ -6,6 +6,7 @@ class Vehicle {
   final int year;
   final double pricePerDay;
   final String status;
+  final String? imageUrl;
 
   Vehicle({
     required this.id,
@@ -15,6 +16,7 @@ class Vehicle {
     required this.year,
     required this.pricePerDay,
     required this.status,
+    this.imageUrl,
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class Vehicle {
       year: json['year'] as int,
       pricePerDay: (json['pricePerDay'] as num).toDouble(),
       status: json['status'] as String,
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 
@@ -38,6 +41,16 @@ class Vehicle {
       'year': year,
       'pricePerDay': pricePerDay,
       'status': status,
+      'imageUrl': imageUrl,
     };
+  }
+
+  /// Returns the absolute image URL by prepending the backend host if necessary.
+  String? get fullImageUrl {
+    if (imageUrl == null || imageUrl!.trim().isEmpty) return null;
+    if (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://')) {
+      return imageUrl;
+    }
+    return 'http://localhost:8081$imageUrl';
   }
 }

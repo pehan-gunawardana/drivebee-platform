@@ -379,25 +379,21 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.amber.shade100,
-                      Colors.amber.shade200,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.directions_car_filled,
-                    size: 100,
-                    color: Colors.amber.shade800.withOpacity(0.5),
-                  ),
-                ),
-              ),
+              background: (widget.vehicle.imageUrl != null && widget.vehicle.imageUrl!.isNotEmpty)
+                  ? Image.network(
+                      widget.vehicle.imageUrl!.startsWith('http')
+                          ? widget.vehicle.imageUrl!
+                          : 'http://localhost:8081${widget.vehicle.imageUrl}',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.directions_car, color: Colors.grey, size: 50),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.directions_car, color: Colors.grey, size: 50),
+                    ),
             ),
           ),
 

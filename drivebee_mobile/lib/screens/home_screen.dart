@@ -392,28 +392,28 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Mock Image Area with gradient overlay and badge
-                                  Container(
+                                  // Vehicle Image Area with network error fallback
+                                  SizedBox(
                                     height: 160,
                                     width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.amber.shade100,
-                                          Colors.amber.shade200,
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                    ),
                                     child: Stack(
                                       children: [
-                                        Center(
-                                          child: Icon(
-                                            Icons.directions_car_filled,
-                                            size: 72,
-                                            color: Colors.amber.shade800.withOpacity(0.6),
-                                          ),
+                                        Positioned.fill(
+                                          child: (vehicle.imageUrl != null && vehicle.imageUrl!.isNotEmpty)
+                                              ? Image.network(
+                                                  vehicle.imageUrl!.startsWith('http')
+                                                      ? vehicle.imageUrl!
+                                                      : 'http://localhost:8081${vehicle.imageUrl}',
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error, stackTrace) => Container(
+                                                    color: Colors.grey[300],
+                                                    child: const Icon(Icons.directions_car, color: Colors.grey, size: 50),
+                                                  ),
+                                                )
+                                              : Container(
+                                                  color: Colors.grey[300],
+                                                  child: const Icon(Icons.directions_car, color: Colors.grey, size: 50),
+                                                ),
                                         ),
                                         // Verified Badge
                                         Positioned(
