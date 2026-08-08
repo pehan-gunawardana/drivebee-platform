@@ -191,11 +191,27 @@ class VehicleCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Text(
-                            'Plate: ${vehicle.licensePlate}',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppTheme.textSecondary,
+                          Expanded(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: Colors.grey.shade300),
+                                ),
+                                child: Text(
+                                  vehicle.licensePlate,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.textPrimary,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ],

@@ -55,6 +55,11 @@ public class BookingService {
         // Calculate total price (days * pricePerDay)
         BigDecimal totalPrice = vehicle.getPricePerDay().multiply(BigDecimal.valueOf(days));
 
+        // Resolve payment method, defaulting to CASH
+        String paymentMethod = (dto.getPaymentMethod() != null && !dto.getPaymentMethod().isBlank())
+                ? dto.getPaymentMethod().toUpperCase()
+                : "CASH";
+
         // Build Booking entity
         Booking booking = Booking.builder()
                 .customer(customer)
@@ -62,6 +67,8 @@ public class BookingService {
                 .startDate(dto.getStartDate().atStartOfDay())
                 .endDate(dto.getEndDate().atStartOfDay())
                 .totalPrice(totalPrice)
+                .paymentMethod(paymentMethod)
+                .paymentStatus("PENDING")
                 .status(BookingStatus.PENDING)
                 .build();
 
@@ -102,6 +109,8 @@ public class BookingService {
                 .endDate(booking.getEndDate())
                 .totalPrice(booking.getTotalPrice())
                 .status(booking.getStatus())
+                .paymentMethod(booking.getPaymentMethod())
+                .paymentStatus(booking.getPaymentStatus())
                 .vehicle(vehicleSummary)
                 .createdAt(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())

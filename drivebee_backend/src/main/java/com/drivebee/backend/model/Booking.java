@@ -49,6 +49,14 @@ public class Booking {
     @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
 
+    @Column(name = "payment_method", nullable = false)
+    @Builder.Default
+    private String paymentMethod = "CASH";
+
+    @Column(name = "payment_status", nullable = false)
+    @Builder.Default
+    private String paymentStatus = "PENDING";
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingStatus status;

@@ -24,4 +24,6 @@ public class BookingDto {
 
     @NotNull(message = "End date is required")
     private LocalDate endDate;
+
+    private String paymentMethod; // e.g. "CASH", "CARD"
 }

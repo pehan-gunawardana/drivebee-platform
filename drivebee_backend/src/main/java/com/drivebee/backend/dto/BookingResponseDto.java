@@ -19,6 +19,8 @@ public class BookingResponseDto {
     private LocalDateTime endDate;
     private BigDecimal totalPrice;
     private BookingStatus status;
+    private String paymentMethod;
+    private String paymentStatus;
     private VehicleSummaryDto vehicle;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

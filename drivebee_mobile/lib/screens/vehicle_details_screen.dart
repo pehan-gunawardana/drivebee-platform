@@ -15,12 +15,11 @@ class VehicleDetailsScreen extends StatefulWidget {
 }
 
 class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
-  // We keep date state here to pass to the bottom sheet if selected,
-  // or let the bottom sheet manage its own selection.
   DateTime? _startDate;
   DateTime? _endDate;
   List<Review>? _reviews;
   bool _isLoadingReviews = true;
+  String _selectedPaymentMethod = 'CASH'; // 'CASH' or 'CARD'
 
   @override
   void initState() {
@@ -145,7 +144,6 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
 
               Navigator.pop(context); // Close bottom sheet first
 
-              // Show global loading indicator or state
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Processing your booking...')),
               );
@@ -155,6 +153,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                   'vehicleId': widget.vehicle.id,
                   'startDate': _formatDate(_startDate),
                   'endDate': _formatDate(_endDate),
+                  'paymentMethod': _selectedPaymentMethod,
                 });
 
                 if (success) {
@@ -348,6 +347,112 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                     ),
                     const SizedBox(height: 24),
                   ],
+
+                  // Payment Method Selection
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Payment Method',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setModalState(() => _selectedPaymentMethod = 'CASH'),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: _selectedPaymentMethod == 'CASH'
+                                  ? AppTheme.primary.withValues(alpha: 0.08)
+                                  : AppTheme.background,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: _selectedPaymentMethod == 'CASH'
+                                    ? AppTheme.primary
+                                    : Colors.grey.shade200,
+                                width: _selectedPaymentMethod == 'CASH' ? 2 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.payments_outlined,
+                                  size: 20,
+                                  color: _selectedPaymentMethod == 'CASH'
+                                      ? AppTheme.primary
+                                      : AppTheme.textSecondary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Cash on Delivery',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: _selectedPaymentMethod == 'CASH'
+                                        ? AppTheme.primary
+                                        : AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setModalState(() => _selectedPaymentMethod = 'CARD'),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: _selectedPaymentMethod == 'CARD'
+                                  ? AppTheme.primary.withValues(alpha: 0.08)
+                                  : AppTheme.background,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: _selectedPaymentMethod == 'CARD'
+                                    ? AppTheme.primary
+                                    : Colors.grey.shade200,
+                                width: _selectedPaymentMethod == 'CARD' ? 2 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.credit_card,
+                                  size: 20,
+                                  color: _selectedPaymentMethod == 'CARD'
+                                      ? AppTheme.primary
+                                      : AppTheme.textSecondary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Pay via Card',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: _selectedPaymentMethod == 'CARD'
+                                        ? AppTheme.primary
+                                        : AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
                   // Confirmation Button
                   ElevatedButton(

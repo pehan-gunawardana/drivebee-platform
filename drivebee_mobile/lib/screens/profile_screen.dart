@@ -275,8 +275,41 @@ class ProfileScreen extends StatelessWidget {
 
             // 5. Logout Button
             ElevatedButton(
-              onPressed: () {
-                AuthService().logout().then((_) {
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    title: const Text('Logout?'),
+                    content: const Text(
+                      'Are you sure you want to logout of your DriveBee account?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: AppTheme.textSecondary),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Logout', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true) {
+                  await AuthService().logout();
                   if (context.mounted) {
                     Navigator.pushAndRemoveUntil(
                       context,
@@ -284,7 +317,7 @@ class ProfileScreen extends StatelessWidget {
                       (route) => false,
                     );
                   }
-                });
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red.shade50,
