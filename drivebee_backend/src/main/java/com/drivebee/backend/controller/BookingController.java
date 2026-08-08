@@ -37,4 +37,14 @@ public class BookingController {
         List<BookingResponseDto> bookings = bookingService.getBookingsForCurrentUser();
         return ResponseEntity.ok(bookings);
     }
+
+    /**
+     * GET endpoint to fetch all bookings for the currently authenticated user under my-trips path.
+     * Accessible via GET /api/v1/bookings/my-trips
+     */
+    @GetMapping("/my-trips")
+    public ResponseEntity<List<BookingResponseDto>> getMyTrips() {
+        List<BookingResponseDto> bookings = bookingService.getBookingsForCurrentUser();
+        return ResponseEntity.ok(bookings);
+    }
 }

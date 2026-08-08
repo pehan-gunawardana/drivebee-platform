@@ -12,8 +12,12 @@ class VehicleService {
 
   /// Fetches the list of vehicles from the backend database.
   /// Attaches the user's saved JWT Bearer token to the Authorization headers.
-  Future<List<Vehicle>> fetchVehicles() async {
-    final url = Uri.parse('${ApiConstants.baseUrl}/vehicles');
+  Future<List<Vehicle>> fetchVehicles({String? searchQuery}) async {
+    String urlString = '${ApiConstants.baseUrl}/vehicles';
+    if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+      urlString += '?search=${Uri.encodeComponent(searchQuery.trim())}';
+    }
+    final url = Uri.parse(urlString);
     
     try {
       final prefs = await SharedPreferences.getInstance();

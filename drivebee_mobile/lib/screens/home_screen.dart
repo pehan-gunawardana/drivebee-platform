@@ -16,6 +16,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Vehicle>> _vehiclesFuture;
   String _selectedCategory = 'All';
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
 
   final List<String> _categories = ['All', 'Cars', 'SUVs', 'Vans'];
 
@@ -25,9 +27,15 @@ class _HomeScreenState extends State<HomeScreen> {
     _vehiclesFuture = VehicleService().fetchVehicles();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _refreshVehicles() {
     setState(() {
-      _vehiclesFuture = VehicleService().fetchVehicles();
+      _vehiclesFuture = VehicleService().fetchVehicles(searchQuery: _searchQuery);
     });
   }
 
@@ -197,9 +205,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Mock Search Bar
+                    // Interactive Search Bar
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(16.0),
@@ -209,18 +217,40 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       child: Row(
-                        children: const [
-                          Icon(Icons.search, color: Colors.white70),
-                          SizedBox(width: 12),
-                          Text(
-                            'Search for perfect cars...',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 15,
+                        children: [
+                          const Icon(Icons.search, color: Colors.white70),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              style: const TextStyle(color: Colors.white, fontSize: 15),
+                              cursorColor: AppTheme.primary,
+                              decoration: const InputDecoration(
+                                hintText: 'Search for perfect cars...',
+                                hintStyle: TextStyle(color: Colors.white70),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(vertical: 12.0),
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value.trim();
+                                  _vehiclesFuture = VehicleService().fetchVehicles(searchQuery: _searchQuery);
+                                });
+                              },
                             ),
                           ),
-                          Spacer(),
-                          Icon(Icons.tune, color: AppTheme.primary),
+                          if (_searchController.text.isNotEmpty)
+                            IconButton(
+                              icon: const Icon(Icons.clear, color: Colors.white70, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                  _vehiclesFuture = VehicleService().fetchVehicles();
+                                });
+                              },
+                            ),
+                          const Icon(Icons.tune, color: AppTheme.primary),
                         ],
                       ),
                     ),

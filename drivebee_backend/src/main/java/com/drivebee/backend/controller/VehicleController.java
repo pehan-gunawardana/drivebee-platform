@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/vehicles")
@@ -33,8 +35,20 @@ public class VehicleController {
      * Accessible via GET /api/v1/vehicles
      */
     @GetMapping
-    public ResponseEntity<List<Vehicle>> getAllVehicles() {
-        List<Vehicle> vehicles = vehicleService.getAllVehicles();
+    public ResponseEntity<List<Vehicle>> getAllVehicles(@RequestParam(required = false) String search) {
+        List<Vehicle> vehicles = vehicleService.getAllVehicles(search);
         return ResponseEntity.ok(vehicles);
+    }
+
+    /**
+     * POST endpoint to upload a vehicle image.
+     * Accessible via POST /api/v1/vehicles/{id}/image
+     */
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadVehicleImage(
+            @PathVariable Long id,
+            @RequestParam("image") MultipartFile image) {
+        String imageUrl = vehicleService.uploadVehicleImage(id, image);
+        return ResponseEntity.ok(imageUrl);
     }
 }
