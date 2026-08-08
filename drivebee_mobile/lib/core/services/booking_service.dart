@@ -36,6 +36,8 @@ class BookingService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
       } else {
+        print('Create booking failed with status code: ${response.statusCode}');
+        print('Backend response body: ${response.body}');
         // Retrieve error message from response body if present
         String errorMessage = 'Booking failed';
         try {

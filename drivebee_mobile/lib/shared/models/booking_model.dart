@@ -8,6 +8,9 @@ class Booking {
   final String status;
   final double? totalPrice;
 
+  final String? paymentMethod;
+  final String? paymentStatus;
+
   Booking({
     required this.id,
     required this.vehicleId,
@@ -17,6 +20,8 @@ class Booking {
     required this.endDate,
     required this.status,
     this.totalPrice,
+    this.paymentMethod,
+    this.paymentStatus,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -42,6 +47,8 @@ class Booking {
       endDate: json['endDate'] as String,
       status: json['status'] as String,
       totalPrice: json['totalPrice'] != null ? (json['totalPrice'] as num).toDouble() : null,
+      paymentMethod: json['paymentMethod'] as String?,
+      paymentStatus: json['paymentStatus'] as String?,
     );
   }
 
@@ -53,6 +60,8 @@ class Booking {
       'endDate': endDate,
       'status': status,
       'totalPrice': totalPrice,
+      'paymentMethod': paymentMethod,
+      'paymentStatus': paymentStatus,
     };
   }
 }

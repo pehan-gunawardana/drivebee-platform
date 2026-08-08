@@ -154,6 +154,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                   'startDate': _formatDate(_startDate),
                   'endDate': _formatDate(_endDate),
                   'paymentMethod': _selectedPaymentMethod,
+                  'paymentStatus': 'PENDING',
                 });
 
                 if (success) {
