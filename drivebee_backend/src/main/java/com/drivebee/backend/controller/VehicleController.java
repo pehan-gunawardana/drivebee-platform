@@ -35,8 +35,10 @@ public class VehicleController {
      * Accessible via GET /api/v1/vehicles
      */
     @GetMapping
-    public ResponseEntity<List<Vehicle>> getAllVehicles(@RequestParam(required = false) String search) {
-        List<Vehicle> vehicles = vehicleService.getAllVehicles(search);
+    public ResponseEntity<List<Vehicle>> getAllVehicles(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String category) {
+        List<Vehicle> vehicles = vehicleService.getAllVehicles(search, category);
         return ResponseEntity.ok(vehicles);
     }
 
@@ -47,8 +49,20 @@ public class VehicleController {
     @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadVehicleImage(
             @PathVariable Long id,
-            @RequestParam("image") MultipartFile image) {
-        String imageUrl = vehicleService.uploadVehicleImage(id, image);
+            @RequestParam("image") MultipartFile file) {
+        String imageUrl = vehicleService.uploadVehicleImage(id, file);
         return ResponseEntity.ok(imageUrl);
+    }
+
+    @GetMapping("/my-listings")
+    public ResponseEntity<List<Vehicle>> getMyListings() {
+        List<Vehicle> listings = vehicleService.getMyListings();
+        return ResponseEntity.ok(listings);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteVehicle(@PathVariable Long id) {
+        vehicleService.deleteVehicle(id);
+        return ResponseEntity.noContent().build();
     }
 }

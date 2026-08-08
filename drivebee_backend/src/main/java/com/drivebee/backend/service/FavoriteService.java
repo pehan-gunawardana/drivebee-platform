@@ -66,6 +66,7 @@ public class FavoriteService {
                         java.math.BigDecimal price = v.getPricePerDay();
                         VehicleStatus status = v.getStatus();
                         String imageUrl = v.getImageUrl();
+                        String category = v.getCategory();
 
                         // Return a clean unmanaged copy to prevent Jackson serialization loops or proxy issues
                         Vehicle copy = Vehicle.builder()
@@ -77,6 +78,7 @@ public class FavoriteService {
                                 .pricePerDay(price)
                                 .status(status)
                                 .imageUrl(imageUrl)
+                                .category(category)
                                 .build();
                         return copy;
                     } catch (Exception e) {

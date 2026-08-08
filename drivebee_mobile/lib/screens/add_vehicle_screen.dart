@@ -19,6 +19,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _plateController = TextEditingController();
   final _priceController = TextEditingController();
   bool _isLoading = false;
+  String _selectedCategory = 'Cars';
 
   Uint8List? _selectedImageBytes;
   String? _selectedImageName;
@@ -80,8 +81,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       'model': _modelController.text.trim(),
       'manufactureYear': int.parse(_yearController.text.trim()),
       'licensePlate': _plateController.text.trim().toUpperCase(),
-      // Send pricePerDay as double in case backend supports it
       'pricePerDay': double.parse(_priceController.text.trim()),
+      'category': _selectedCategory,
     };
 
     try {
@@ -374,6 +375,30 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     return 'Please enter a valid price';
                   }
                   return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                initialValue: _selectedCategory,
+                decoration: InputDecoration(
+                  labelText: 'Vehicle Category',
+                  prefixIcon: const Icon(Icons.category_outlined, color: AppTheme.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                items: ['Cars', 'SUVs', 'Vans', 'Tuks'].map((String category) {
+                  return DropdownMenuItem<String>(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      _selectedCategory = newValue;
+                    });
+                  }
                 },
               ),
               const SizedBox(height: 36),

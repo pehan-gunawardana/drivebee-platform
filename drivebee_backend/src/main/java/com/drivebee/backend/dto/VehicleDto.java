@@ -26,4 +26,7 @@ public class VehicleDto {
 
     @NotBlank(message = "License plate is required")
     private String licensePlate;
+
+    @NotBlank(message = "Category is required")
+    private String category;
 }

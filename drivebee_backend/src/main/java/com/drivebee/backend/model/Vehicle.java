@@ -63,6 +63,9 @@ public class Vehicle {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "category")
+    private String category;
+
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     @ToString.Exclude

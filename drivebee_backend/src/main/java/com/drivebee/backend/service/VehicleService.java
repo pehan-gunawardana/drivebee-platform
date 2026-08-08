@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,17 +48,30 @@ public class VehicleService {
                 .status(VehicleStatus.AVAILABLE)
                 .owner(owner)
                 .pricePerDay(BigDecimal.valueOf(50.0)) // Default placeholder price per day
+                .category(dto.getCategory())
                 .build();
 
         return vehicleRepository.save(vehicle);
     }
 
     /**
-     * Fetches all vehicle records, optionally matching a search query.
+     * Fetches all vehicle records, optionally matching a search query and category.
      */
-    public List<Vehicle> getAllVehicles(String search) {
-        if (search != null && !search.trim().isEmpty()) {
+    public List<Vehicle> getAllVehicles(String search, String category) {
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        boolean hasCategory = category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("All");
+
+        if (hasSearch && hasCategory) {
+            String query = search.trim().toLowerCase();
+            String cat = category.trim().toLowerCase();
+            return vehicleRepository.findByCategoryIgnoreCase(cat).stream()
+                    .filter(v -> (v.getBrand() != null && v.getBrand().toLowerCase().contains(query))
+                            || (v.getModel() != null && v.getModel().toLowerCase().contains(query)))
+                    .collect(Collectors.toList());
+        } else if (hasSearch) {
             return vehicleRepository.findByBrandContainingIgnoreCaseOrModelContainingIgnoreCase(search.trim(), search.trim());
+        } else if (hasCategory) {
+            return vehicleRepository.findByCategoryIgnoreCase(category.trim());
         }
         return vehicleRepository.findAll();
     }
@@ -107,5 +121,28 @@ public class VehicleService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to store file: " + e.getMessage(), e);
         }
+    }
+
+    public List<Vehicle> getMyListings() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User owner = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        return vehicleRepository.findByOwnerId(owner.getId());
+    }
+
+    public void deleteVehicle(Long vehicleId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User owner = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found with ID: " + vehicleId));
+
+        if (!vehicle.getOwner().getId().equals(owner.getId())) {
+            throw new IllegalStateException("You are not authorized to delete this vehicle listing");
+        }
+
+        vehicleRepository.delete(vehicle);
     }
 }

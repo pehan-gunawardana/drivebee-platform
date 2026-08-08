@@ -7,6 +7,7 @@ class Vehicle {
   final double pricePerDay;
   final String status;
   final String? imageUrl;
+  final String? category;
 
   Vehicle({
     required this.id,
@@ -17,6 +18,7 @@ class Vehicle {
     required this.pricePerDay,
     required this.status,
     this.imageUrl,
+    this.category,
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class Vehicle {
       pricePerDay: (json['pricePerDay'] as num).toDouble(),
       status: json['status'] as String,
       imageUrl: json['imageUrl'] as String?,
+      category: json['category'] as String?,
     );
   }
 
@@ -42,6 +45,7 @@ class Vehicle {
       'pricePerDay': pricePerDay,
       'status': status,
       'imageUrl': imageUrl,
+      'category': category,
     };
   }
 

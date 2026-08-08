@@ -4,6 +4,7 @@ import '../core/services/auth_service.dart';
 import 'login_screen.dart';
 import 'owner_dashboard_screen.dart';
 import 'favourites_screen.dart';
+import 'my_listings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -249,6 +250,14 @@ class ProfileScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const FavouritesScreen(),
+                ),
+              );
+            }),
+            _buildActionTile(Icons.directions_car_filled_outlined, 'My Garage', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyListingsScreen(),
                 ),
               );
             }),

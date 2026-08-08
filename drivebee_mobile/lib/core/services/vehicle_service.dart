@@ -12,10 +12,19 @@ class VehicleService {
 
   /// Fetches the list of vehicles from the backend database.
   /// Attaches the user's saved JWT Bearer token to the Authorization headers.
-  Future<List<Vehicle>> fetchVehicles({String? searchQuery}) async {
+  Future<List<Vehicle>> fetchVehicles({String? searchQuery, String? category}) async {
     String urlString = '${ApiConstants.baseUrl}/vehicles';
+    final List<String> queryParams = [];
+
     if (searchQuery != null && searchQuery.trim().isNotEmpty) {
-      urlString += '?search=${Uri.encodeComponent(searchQuery.trim())}';
+      queryParams.add('search=${Uri.encodeComponent(searchQuery.trim())}');
+    }
+    if (category != null && category.trim().isNotEmpty && category != 'All') {
+      queryParams.add('category=${Uri.encodeComponent(category.trim())}');
+    }
+
+    if (queryParams.isNotEmpty) {
+      urlString += '?${queryParams.join('&')}';
     }
     final url = Uri.parse(urlString);
     
@@ -120,6 +129,61 @@ class VehicleService {
       }
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<List<Vehicle>> fetchMyListings() async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/vehicles/my-listings');
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+
+      final Map<String, String> headers = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await _client.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = jsonDecode(response.body);
+        return jsonList.map((json) => Vehicle.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to fetch my listings (Status: ${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Failed to load my listings: $e');
+    }
+  }
+
+  Future<bool> deleteVehicle(int vehicleId) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/vehicles/$vehicleId');
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+
+      final Map<String, String> headers = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await _client.delete(url, headers: headers);
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return true;
+      } else {
+        throw Exception('Failed to delete vehicle listing (Status: ${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception('Failed to delete vehicle: $e');
     }
   }
 }

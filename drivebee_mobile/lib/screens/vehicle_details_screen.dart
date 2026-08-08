@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../core/services/booking_service.dart';
+import '../core/services/review_service.dart';
 import '../shared/models/vehicle_model.dart';
+import '../shared/models/review_model.dart';
 
 class VehicleDetailsScreen extends StatefulWidget {
   final Vehicle vehicle;
@@ -17,6 +19,38 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
   // or let the bottom sheet manage its own selection.
   DateTime? _startDate;
   DateTime? _endDate;
+  List<Review>? _reviews;
+  bool _isLoadingReviews = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviews();
+  }
+
+  Future<void> _loadReviews() async {
+    try {
+      final reviews = await ReviewService().fetchReviewsForVehicle(widget.vehicle.id);
+      setState(() {
+        _reviews = reviews;
+        _isLoadingReviews = false;
+      });
+    } catch (_) {
+      setState(() {
+        _isLoadingReviews = false;
+      });
+    }
+  }
+
+  double get _averageRating {
+    if (_reviews == null || _reviews!.isEmpty) return 5.0;
+    double sum = _reviews!.fold(0, (prev, element) => prev + element.rating);
+    return sum / _reviews!.length;
+  }
+
+  int get _reviewCount {
+    return _reviews?.length ?? 0;
+  }
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'Select Date';
@@ -436,9 +470,11 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                                   const SizedBox(width: 12),
                                   const Icon(Icons.star, color: AppTheme.primary, size: 16),
                                   const SizedBox(width: 4),
-                                  const Text(
-                                    '4.9 (48 reviews)',
-                                    style: TextStyle(
+                                  Text(
+                                    _isLoadingReviews
+                                        ? 'Loading...'
+                                        : '${_averageRating.toStringAsFixed(1)} ($_reviewCount reviews)',
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       color: AppTheme.textPrimary,
                                       fontWeight: FontWeight.bold,
@@ -572,6 +608,31 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                         ],
                       ),
                     ),
+                    // Reviews & Ratings Section
+                    const SizedBox(height: 28),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Reviews & Ratings',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _showWriteReviewBottomSheet,
+                          icon: const Icon(Icons.rate_review_outlined, size: 18),
+                          label: const Text('Write a Review'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildReviewsList(),
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -644,5 +705,259 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildReviewsList() {
+    if (_isLoadingReviews) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20.0),
+          child: CircularProgressIndicator(color: AppTheme.primary),
+        ),
+      );
+    }
+
+    if (_reviews == null || _reviews!.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.star_border, color: Colors.grey.shade400, size: 40),
+            const SizedBox(height: 8),
+            const Text(
+              'No reviews yet',
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: _reviews!.map((review) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${review.userFirstName} ${review.userLastName.isNotEmpty ? review.userLastName[0] + '.' : ''}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  Row(
+                    children: List.generate(5, (starIndex) {
+                      return Icon(
+                        starIndex < review.rating ? Icons.star : Icons.star_border,
+                        color: AppTheme.primary,
+                        size: 14,
+                      );
+                    }),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                review.comment,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  void _showWriteReviewBottomSheet() {
+    int rating = 5;
+    final commentController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              padding: EdgeInsets.only(
+                top: 24,
+                left: 24,
+                right: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Write a Review',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Share your experience renting this vehicle.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Star Rating Row
+                  Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(5, (index) {
+                        final starValue = index + 1;
+                        return IconButton(
+                          icon: Icon(
+                            starValue <= rating ? Icons.star : Icons.star_border,
+                            color: AppTheme.primary,
+                            size: 36,
+                          ),
+                          onPressed: () {
+                            setModalState(() {
+                              rating = starValue;
+                            });
+                          },
+                        );
+                      }),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Comment Text Field
+                  TextField(
+                    controller: commentController,
+                    maxLines: 4,
+                    maxLength: 500,
+                    decoration: InputDecoration(
+                      hintText: 'Describe your rental experience (optional)...',
+                      hintStyle: const TextStyle(color: AppTheme.textSecondary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Submit Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final comment = commentController.text.trim();
+                        Navigator.pop(context); // Close bottom sheet
+
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          const SnackBar(content: Text('Submitting your review...')),
+                        );
+
+                        try {
+                          final newReview = await ReviewService().createReview(
+                            vehicleId: widget.vehicle.id,
+                            rating: rating,
+                            comment: comment.isNotEmpty ? comment : 'Good vehicle!',
+                          );
+
+                          if (!mounted) return;
+                          setState(() {
+                            _reviews ??= [];
+                            _reviews!.insert(0, newReview); // Insert at the top
+                          });
+
+                          ScaffoldMessenger.of(this.context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Review Submitted!'),
+                              backgroundColor: AppTheme.success,
+                            ),
+                          );
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(this.context).showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString().replaceAll('Exception: ', '')),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Submit Review',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) {
+      commentController.dispose();
+    });
   }
 }

@@ -8,4 +8,6 @@ import java.util.List;
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByBrandContainingIgnoreCaseOrModelContainingIgnoreCase(String brand, String model);
+    List<Vehicle> findByCategoryIgnoreCase(String category);
+    List<Vehicle> findByOwnerId(Long ownerId);
 }

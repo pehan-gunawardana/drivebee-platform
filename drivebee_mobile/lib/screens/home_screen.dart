@@ -22,12 +22,12 @@ class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = '';
   Set<int> _favoritedVehicleIds = {};
 
-  final List<String> _categories = ['All', 'Cars', 'SUVs', 'Vans'];
+  final List<String> _categories = ['All', 'Cars', 'SUVs', 'Vans', 'Tuks'];
 
   @override
   void initState() {
     super.initState();
-    _vehiclesFuture = VehicleService().fetchVehicles();
+    _vehiclesFuture = VehicleService().fetchVehicles(category: _selectedCategory);
     _loadFavorites();
   }
 
@@ -73,24 +73,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _refreshVehicles() {
     setState(() {
-      _vehiclesFuture = VehicleService().fetchVehicles(searchQuery: _searchQuery);
+      _vehiclesFuture = VehicleService().fetchVehicles(
+        searchQuery: _searchQuery,
+        category: _selectedCategory,
+      );
     });
     _loadFavorites();
   }
 
   List<Vehicle> _filterVehicles(List<Vehicle> vehicles) {
-    if (_selectedCategory == 'All') return vehicles;
-    return vehicles.where((v) {
-      // Logic mapping (e.g. if category is Cars, check status or map model, or match brand name for mock filters)
-      if (_selectedCategory == 'SUVs') {
-        return v.model.toLowerCase().contains('suv') || v.brand.toLowerCase().contains('jeep') || v.year >= 2022;
-      }
-      if (_selectedCategory == 'Vans') {
-        return v.model.toLowerCase().contains('van') || v.brand.toLowerCase().contains('toyota');
-      }
-      // default fallthrough to brand/model filters or return all if mock matches
-      return v.model.toLowerCase().contains('car') || (!v.model.toLowerCase().contains('suv') && !v.model.toLowerCase().contains('van'));
-    }).toList();
+    return vehicles;
   }
 
   @override
@@ -273,7 +265,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               onChanged: (value) {
                                 setState(() {
                                   _searchQuery = value.trim();
-                                  _vehiclesFuture = VehicleService().fetchVehicles(searchQuery: _searchQuery);
+                                  _vehiclesFuture = VehicleService().fetchVehicles(
+                                    searchQuery: _searchQuery,
+                                    category: _selectedCategory,
+                                  );
                                 });
                               },
                             ),
@@ -285,7 +280,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _searchController.clear();
                                 setState(() {
                                   _searchQuery = '';
-                                  _vehiclesFuture = VehicleService().fetchVehicles();
+                                  _vehiclesFuture = VehicleService().fetchVehicles(
+                                    category: _selectedCategory,
+                                  );
                                 });
                               },
                             ),
@@ -330,6 +327,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         onSelected: (selected) {
                           setState(() {
                             _selectedCategory = cat;
+                            _vehiclesFuture = VehicleService().fetchVehicles(
+                              searchQuery: _searchQuery,
+                              category: _selectedCategory,
+                            );
                           });
                         },
                         selectedColor: AppTheme.primary,
