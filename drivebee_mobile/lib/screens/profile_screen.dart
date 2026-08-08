@@ -3,6 +3,7 @@ import '../core/theme/app_theme.dart';
 import '../core/services/auth_service.dart';
 import 'login_screen.dart';
 import 'owner_dashboard_screen.dart';
+import 'favourites_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -244,8 +245,11 @@ class ProfileScreen extends StatelessWidget {
               );
             }),
             _buildActionTile(Icons.favorite_border, 'Favourites', () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Favourites list is coming soon!')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FavouritesScreen(),
+                ),
               );
             }),
             _buildActionTile(Icons.payment_outlined, 'Payment Methods', () {

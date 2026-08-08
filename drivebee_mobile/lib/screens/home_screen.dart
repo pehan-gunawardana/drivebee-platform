@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../core/services/vehicle_service.dart';
+import '../core/services/favorite_service.dart';
 import '../shared/models/vehicle_model.dart';
+import '../shared/widgets/vehicle_card.dart';
 import 'vehicle_details_screen.dart';
 import 'my_bookings_screen.dart';
 import 'profile_screen.dart';
@@ -18,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedCategory = 'All';
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  Set<int> _favoritedVehicleIds = {};
 
   final List<String> _categories = ['All', 'Cars', 'SUVs', 'Vans'];
 
@@ -25,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _vehiclesFuture = VehicleService().fetchVehicles();
+    _loadFavorites();
   }
 
   @override
@@ -33,10 +37,45 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  Future<void> _loadFavorites() async {
+    try {
+      final favorites = await FavoriteService().fetchFavorites();
+      setState(() {
+        _favoritedVehicleIds = favorites.map((v) => v.id).toSet();
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _toggleFavorite(int vehicleId) async {
+    try {
+      final isAdded = await FavoriteService().toggleFavorite(vehicleId);
+      if (!mounted) return;
+      setState(() {
+        if (isAdded) {
+          _favoritedVehicleIds.add(vehicleId);
+        } else {
+          _favoritedVehicleIds.remove(vehicleId);
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isAdded ? 'Added to Favorites' : 'Removed from Favorites'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    }
+  }
+
   void _refreshVehicles() {
     setState(() {
       _vehiclesFuture = VehicleService().fetchVehicles(searchQuery: _searchQuery);
     });
+    _loadFavorites();
   }
 
   List<Vehicle> _filterVehicles(List<Vehicle> vehicles) {
@@ -389,211 +428,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: vehicles.length,
                     itemBuilder: (context, index) {
                       final vehicle = vehicles[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 20.0),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                      return VehicleCard(
+                        vehicle: vehicle,
+                        isFavorite: _favoritedVehicleIds.contains(vehicle.id),
+                        onFavoriteToggle: () => _toggleFavorite(vehicle.id),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VehicleDetailsScreen(vehicle: vehicle),
                             ),
-                          ],
-                          border: Border.all(
-                            color: Colors.grey.shade100,
-                            width: 1,
-                          ),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => VehicleDetailsScreen(vehicle: vehicle),
-                                  ),
-                                ).then((_) => _refreshVehicles());
-                              },
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Vehicle Image Area with network error fallback
-                                  SizedBox(
-                                    height: 160,
-                                    width: double.infinity,
-                                    child: Stack(
-                                      children: [
-                                        Positioned.fill(
-                                          child: (vehicle.imageUrl != null && vehicle.imageUrl!.isNotEmpty)
-                                              ? Image.network(
-                                                  vehicle.imageUrl!.startsWith('http')
-                                                      ? vehicle.imageUrl!
-                                                      : 'http://localhost:8081${vehicle.imageUrl}',
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (context, error, stackTrace) => Container(
-                                                    color: Colors.grey[300],
-                                                    child: const Icon(Icons.directions_car, color: Colors.grey, size: 50),
-                                                  ),
-                                                )
-                                              : Container(
-                                                  color: Colors.grey[300],
-                                                  child: const Icon(Icons.directions_car, color: Colors.grey, size: 50),
-                                                ),
-                                        ),
-                                        // Verified Badge
-                                        Positioned(
-                                          top: 12,
-                                          left: 12,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                            decoration: BoxDecoration(
-                                              color: AppTheme.success,
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: Row(
-                                              children: const [
-                                                Icon(Icons.verified, color: Colors.white, size: 14),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  'Verified',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        // Status badge
-                                        Positioned(
-                                          top: 12,
-                                          right: 12,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                            decoration: BoxDecoration(
-                                              color: vehicle.status == 'AVAILABLE'
-                                                  ? Colors.black.withOpacity(0.6)
-                                                  : Colors.red.withOpacity(0.8),
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: Text(
-                                              vehicle.status,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Detail Section
-                                  Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                '${vehicle.brand} ${vehicle.model}',
-                                                style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppTheme.textPrimary,
-                                                ),
-                                              ),
-                                            ),
-                                            Row(
-                                              children: const [
-                                                Icon(Icons.star, color: AppTheme.primary, size: 16),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  '4.9',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: AppTheme.textPrimary,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              'Year: ${vehicle.year}',
-                                              style: const TextStyle(
-                                                fontSize: 13,
-                                                color: AppTheme.textSecondary,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Text(
-                                              'Plate: ${vehicle.licensePlate}',
-                                              style: const TextStyle(
-                                                fontSize: 13,
-                                                color: AppTheme.textSecondary,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const Divider(height: 24),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text(
-                                              'Price',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                color: AppTheme.textSecondary,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            Row(
-                                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                                              textBaseline: TextBaseline.alphabetic,
-                                              children: [
-                                                Text(
-                                                  'Rs. ${vehicle.pricePerDay.toStringAsFixed(0)}',
-                                                  style: const TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: AppTheme.primary,
-                                                  ),
-                                                ),
-                                                const Text(
-                                                  '/day',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: AppTheme.textSecondary,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                          ).then((_) => _refreshVehicles());
+                        },
                       );
                     },
                   );
